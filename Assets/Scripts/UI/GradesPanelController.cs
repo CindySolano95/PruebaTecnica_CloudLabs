@@ -78,6 +78,8 @@ namespace GradeReview.UI
             resultBanner.ShowResult(result);
         }
 
+        public void ShowLoadError(string message) => resultBanner.ShowError(message);
+
         /// <summary>Leaves every row unclassified, without validation feedback.</summary>
         public void ClearClassifications()
         {

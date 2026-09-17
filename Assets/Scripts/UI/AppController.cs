@@ -38,9 +38,10 @@ namespace GradeReview.UI
 
         private void Start()
         {
-            // On failure the repository already logs the cause and returns an empty list.
-            new StudentRepository().TryLoad(out students, out _);
+            // On failure the repository logs the cause and returns an empty list; the app keeps running.
+            bool loaded = new StudentRepository().TryLoad(out students, out string loadError);
             gradesPanel.Build(students);
+            if (!loaded) gradesPanel.ShowLoadError(loadError);
             ShowGrades();
         }
 
