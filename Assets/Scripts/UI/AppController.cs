@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace GradeReview.UI
 {
     /// <summary>
-    /// Scene entry point: loads the students once, hands them to the panels and coordinates navigation and the global reset.
+    /// Scene entry point: loads the students, hands them to the panels and coordinates navigation, reload and the global reset.
     /// </summary>
     public class AppController : MonoBehaviour
     {
@@ -25,6 +25,7 @@ namespace GradeReview.UI
             continueButton.onClick.AddListener(ShowDragDrop);
             backButton.onClick.AddListener(ShowGrades);
             gradesPanel.ResetAllRequested += ResetAll;
+            gradesPanel.ReloadRequested += ReloadStudents;
             dragDropPanel.ResetAllRequested += ResetAll;
         }
 
@@ -33,16 +34,28 @@ namespace GradeReview.UI
             continueButton.onClick.RemoveListener(ShowDragDrop);
             backButton.onClick.RemoveListener(ShowGrades);
             gradesPanel.ResetAllRequested -= ResetAll;
+            gradesPanel.ReloadRequested -= ReloadStudents;
             dragDropPanel.ResetAllRequested -= ResetAll;
         }
 
         private void Start()
         {
+            LoadStudents(announceSuccess: false);
+            ShowGrades();
+        }
+
+        private void ReloadStudents() => LoadStudents(announceSuccess: true);
+
+        private void LoadStudents(bool announceSuccess)
+        {
             // On failure the repository logs the cause and returns an empty list; the app keeps running.
             bool loaded = new StudentRepository().TryLoad(out students, out string loadError);
             gradesPanel.Build(students);
+            // The drag & drop board is rebuilt from the new data the next time it opens.
+            isDragDropBuilt = false;
+
             if (!loaded) gradesPanel.ShowLoadError(loadError);
-            ShowGrades();
+            else if (announceSuccess) gradesPanel.ShowReloadSuccess(students.Count);
         }
 
         private void ShowDragDrop()

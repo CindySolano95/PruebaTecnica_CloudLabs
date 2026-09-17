@@ -20,6 +20,7 @@ namespace GradeReview.UI
         [SerializeField] private TMP_Text studentCountText;
         [SerializeField] private Button validateButton;
         [SerializeField] private Button resetButton;
+        [SerializeField] private Button reloadButton;
         [SerializeField] private ResultBannerView resultBanner;
 
         private readonly List<StudentRowView> rows = new List<StudentRowView>();
@@ -27,18 +28,23 @@ namespace GradeReview.UI
         /// <summary>Raised when the teacher asks to clear the classifications of every screen.</summary>
         public event Action ResetAllRequested;
 
+        /// <summary>Raised when the teacher asks to read estudiantes.json again.</summary>
+        public event Action ReloadRequested;
+
         public IReadOnlyList<StudentRowView> Rows => rows;
 
         private void Awake()
         {
             validateButton.onClick.AddListener(Validate);
             resetButton.onClick.AddListener(RequestResetAll);
+            reloadButton.onClick.AddListener(RequestReload);
         }
 
         private void OnDestroy()
         {
             validateButton.onClick.RemoveListener(Validate);
             resetButton.onClick.RemoveListener(RequestResetAll);
+            reloadButton.onClick.RemoveListener(RequestReload);
         }
 
         public void Build(IReadOnlyList<StudentData> students)
@@ -80,6 +86,9 @@ namespace GradeReview.UI
 
         public void ShowLoadError(string message) => resultBanner.ShowError(message);
 
+        public void ShowReloadSuccess(int studentCount) =>
+            resultBanner.ShowSuccess(studentCount == 1 ? "Datos recargados: 1 estudiante." : $"Datos recargados: {studentCount} estudiantes.");
+
         /// <summary>Leaves every row unclassified, without validation feedback.</summary>
         public void ClearClassifications()
         {
@@ -97,6 +106,8 @@ namespace GradeReview.UI
         }
 
         private void RequestResetAll() => ResetAllRequested?.Invoke();
+
+        private void RequestReload() => ReloadRequested?.Invoke();
 
         // Only offered once every student has been classified.
         private void UpdateResetButton()

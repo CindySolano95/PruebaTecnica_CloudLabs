@@ -10,6 +10,7 @@ Aplicación para que un profesor revise y clasifique las notas de sus estudiante
 - **VALIDAR** compara cada clasificación con la nota real e indica aciertos y errores.
 - **CONTINUAR** abre una segunda pantalla donde los mismos estudiantes se clasifican arrastrando tarjetas.
 - **VERIFICAR CLASIFICACIÓN** valida el resultado del drag & drop con las mismas reglas.
+- **RECARGAR JSON** vuelve a leer el archivo en tiempo de ejecución, sin reiniciar la aplicación.
 
 ## Versión de Unity
 
@@ -64,7 +65,7 @@ PruebaTecnica_CloudLabs.exe -screen-fullscreen 0 -screen-width 1366 -screen-heig
 
 - No hay estudiantes hardcodeados en scripts, escena, prefabs ni Inspector.
 - Toda la interfaz se construye a partir del JSON, así que se adapta a cualquier cantidad de estudiantes.
-- Para cambiar los datos basta con editar el JSON y **reiniciar la aplicación**. La recarga en caliente era un plus opcional y no se implementó.
+- Para cambiar los datos basta con editar el JSON y pulsar **RECARGAR JSON**, sin cerrar la aplicación. En el ejecutable se edita el archivo dentro de `PruebaTecnica_CloudLabs_Data/StreamingAssets/`.
 
 **Regla de aprobación:** `notaFinal >= 3.0` → aprobado. Está centralizada en un único lugar, `StudentData.IsApproved`.
 
@@ -89,7 +90,7 @@ Assets/Scripts
 - `ValidationResult` / `ClassificationOutcome`: resultado global y por estudiante.
 
 **UI**
-- `AppController`: punto de entrada. Carga los datos una vez, coordina la navegación y RESETEAR TODO.
+- `AppController`: punto de entrada. Carga y recarga los datos, y coordina la navegación y RESETEAR TODO.
 - `GradesPanelController` / `StudentRowView`: tabla de notas y cada fila.
 - `ResultBannerView`: banner de éxito o error, compartido por ambas pantallas.
 
@@ -116,10 +117,16 @@ Las vistas no leen datos por su cuenta ni validan: reciben `StudentData` mediant
 - Tras validar, la nota de cada fila se colorea. **Verde indica que la clasificación del profesor es correcta y rojo que es incorrecta**; no indica directamente si el estudiante aprobó. Las filas sin clasificar quedan neutras.
 - Cambiar una clasificación después de validar limpia el feedback obsoleto.
 - **RESETEAR TODO** aparece cuando todos los estudiantes están clasificados y limpia ambas pantallas.
+- **RECARGAR JSON** (en el encabezado) vuelve a leer `estudiantes.json`:
+  - reconstruye la tabla y actualiza el contador;
+  - informa el resultado en el banner, por ejemplo "Datos recargados: 10 estudiantes." o el error de carga;
+  - la pantalla de drag & drop se reconstruye con los nuevos datos la próxima vez que se abre.
+
+  Como los estudiantes pueden haber cambiado, la recarga descarta las clasificaciones anteriores de ambas pantallas.
 
 ## Drag & Drop
 
-- **CONTINUAR** abre la pantalla usando **las mismas instancias de `StudentData`**; el JSON no se vuelve a leer.
+- **CONTINUAR** abre la pantalla usando **las mismas instancias de `StudentData`** que la tabla; el JSON no se vuelve a leer.
 - Cada estudiante es una tarjeta arrastrable. Hay tres zonas: **Sin clasificar**, **Aprobado** y **Reprobado**. Una tarjeta puede moverse entre cualquiera de ellas, incluso de vuelta a Sin clasificar.
 - Si se suelta fuera de una zona válida, la tarjeta vuelve a su posición de origen.
 - Todas las zonas tienen scroll interno, así que ninguna tarjeta queda inaccesible aunque todos los estudiantes estén en la misma zona.
@@ -139,7 +146,7 @@ La carga del JSON contempla:
 - nota ausente;
 - notas fuera del rango 0.0–5.0.
 
-Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se puede cargar ningún estudiante, la aplicación **no se cierra**: muestra el motivo en el banner, por ejemplo "No se encontró el archivo estudiantes.json.".
+Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se puede cargar ningún estudiante, al iniciar o al recargar, la aplicación **no se cierra**: muestra el motivo en el banner, por ejemplo "No se encontró el archivo estudiantes.json.". Tras corregir el archivo basta con pulsar RECARGAR JSON.
 
 ## UI y assets
 
@@ -158,6 +165,7 @@ Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se p
 **Pantalla de notas**
 - Clic en la casilla ✓ (Aprobado) o ✗ (Reprobado); un segundo clic la desmarca.
 - **VALIDAR**, **CONTINUAR**, **RESETEAR TODO**.
+- **RECARGAR JSON** para volver a leer los datos.
 - Rueda del ratón o scrollbar para recorrer la lista.
 
 **Drag & Drop**
@@ -167,7 +175,6 @@ Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se p
 
 ## Limitaciones conocidas
 
-- Los cambios en `estudiantes.json` requieren reiniciar la aplicación.
 - Las tarjetas capturan el gesto de arrastre, así que el scroll se hace con la rueda, la scrollbar o un espacio libre de la lista.
 - `JsonUtility` no distingue `"notaFinal": null` de `0`. Una nota *ausente* sí se detecta y se descarta.
 
@@ -179,7 +186,7 @@ Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se p
 
 **Drag & Drop — 1920×1080** (clasificación verificada)
 
-![Drag and Drop 1920x1080](Docs/Screenshots/dragdrop_1920x1080.png)
+![Drag and Drop 1920x1080](Docs/Screenshots/drag%26drop_1920x1080.png)
 
 **Pantalla de notas — 1366×768** (todo correcto)
 
@@ -187,4 +194,8 @@ Los estudiantes sin nota válida se descartan con un aviso en el log. Si no se p
 
 **Drag & Drop — 1366×768** (clasificación en curso)
 
-![Drag and Drop 1366x768](Docs/Screenshots/dragdrop_1366x768.png)
+![Drag and Drop 1366x768](Docs/Screenshots/drag%26drop_1366x768.png)
+
+**Recargar JSON — 1366×768** (archivo editado con la aplicación abierta: 6 estudiantes nuevos)
+
+![Recargar JSON 1366x768](Docs/Screenshots/reload_json_1366x768.png)
